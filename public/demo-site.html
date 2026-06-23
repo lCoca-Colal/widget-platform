@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Кофейня «Север» — демо чужого сайта</title>
+  <style>
+    /* Намеренно агрессивные стили host-сайта, чтобы показать,
+       что Shadow DOM защищает виджет от чужого CSS. */
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Georgia, "Times New Roman", serif; color: #2b2b2b; background: #faf7f2; line-height: 1.7; }
+    input, textarea, button { font-family: cursive !important; color: red; } /* должно НЕ повлиять на виджет */
+    .site-head { background: #1a2e22; color: #f3efe6; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; }
+    .site-head .logo { font-size: 22px; font-weight: bold; letter-spacing: 1px; }
+    .nav a { color: #cdbfa6; margin-left: 20px; text-decoration: none; font-size: 14px; }
+    .hero { max-width: 760px; margin: 0 auto; padding: 60px 24px 30px; text-align: center; }
+    .hero h1 { font-size: 40px; margin: 0 0 12px; }
+    .hero p { font-size: 18px; color: #6b6457; }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 0 24px 80px; }
+    .article p { margin: 18px 0; font-size: 17px; }
+    .banner-note { background: #fff3cd; border: 1px dashed #d6b656; padding: 10px 14px; border-radius: 8px; font-family: sans-serif; font-size: 13px; color: #6b5a1f; margin: 30px 0; }
+    .block { margin: 50px 0; }
+    .block-label { font-family: sans-serif; font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: #9a8f7d; margin-bottom: 14px; }
+    .site-foot { background: #1a2e22; color: #9aa69c; text-align: center; padding: 24px; font-family: sans-serif; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <header class="site-head">
+    <div class="logo">☕ СЕВЕР</div>
+    <nav class="nav"><a href="#">Меню</a><a href="#">О нас</a><a href="#">Контакты</a></nav>
+  </header>
+
+  <section class="hero">
+    <h1>Кофе, обжаренный вручную</h1>
+    <p>Это демонстрационный «чужой» сайт. Виджеты ниже подгружены одной строкой <code>&lt;script&gt;</code> с нашей платформы.</p>
+  </section>
+
+  <main class="wrap">
+    <div class="banner-note">
+      ⓘ Поп-ап появится автоматически через пару секунд (триггер «по таймеру»). Стили этого сайта намеренно агрессивные
+      (курсивный шрифт, красный цвет полей) — обратите внимание, что виджеты выглядят правильно: их защищает Shadow DOM.
+    </div>
+
+    <article class="article">
+      <p>Мы обжариваем зёрна небольшими партиями каждое утро. Подпишитесь, чтобы первыми узнавать о новых сортах
+      и закрытых дегустациях.</p>
+    </article>
+
+    <!-- ВИДЖЕТ 1: форма подписки -->
+    <div class="block">
+      <div class="block-label">Виджет «Форма подписки» (data-widget-id="demo-form")</div>
+      <div data-widget-id="demo-form"></div>
+    </div>
+
+    <article class="article">
+      <p>Нашему делу уже пять лет. Спасибо каждому, кто заходит за чашкой по утрам — вот что говорят наши гости.</p>
+    </article>
+
+    <!-- ВИДЖЕТ 2: лента отзывов -->
+    <div class="block">
+      <div class="block-label">Виджет «Лента отзывов» (data-widget-id="demo-social")</div>
+      <div data-widget-id="demo-social"></div>
+    </div>
+
+    <article class="article">
+      <p>А ещё в виджет можно вставить вообще любой HTML, CSS и JavaScript — например, интерактивный блок ниже
+      (кнопка считает нажатия). Он работает в изолированном sandbox-iframe.</p>
+    </article>
+
+    <!-- ВИДЖЕТ 4: произвольный HTML -->
+    <div class="block">
+      <div class="block-label">Виджет «HTML / встраивание» (data-widget-id="demo-html")</div>
+      <div data-widget-id="demo-html"></div>
+    </div>
+  </main>
+
+  <footer class="site-foot">© Кофейня «Север» · демонстрационный host-сайт</footer>
+
+  <!-- ВИДЖЕТ 3: поп-ап (рендерится поверх всей страницы) -->
+  <div data-widget-id="demo-popup"></div>
+
+  <!-- ВИДЖЕТ 5: плавающее видео (кружок в углу экрана) -->
+  <div data-widget-id="demo-video"></div>
+
+  <!-- ОДНА строка подключает loader, который находит все виджеты выше -->
+  <script src="/embed.js" async></script>
+</body>
+</html>

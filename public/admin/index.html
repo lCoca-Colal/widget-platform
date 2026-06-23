@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Widget Platform · Админка</title>
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">▣</span>
+      <span class="brand-name">Widget<b>Platform</b></span>
+      <span class="env">локальная сборка</span>
+    </div>
+    <div class="top-actions">
+      <a class="link" href="/demo-site.html" target="_blank">Демо-сайт ↗</a>
+      <button class="btn btn-primary" id="newBtn">+ Новый виджет</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="side-label">Виджеты</div>
+      <div id="widgetList" class="widget-list"></div>
+    </aside>
+
+    <main class="content" id="content">
+      <div class="empty" id="emptyState">
+        <div class="empty-art">▣</div>
+        <h2>Выберите виджет слева</h2>
+        <p>или создайте новый, чтобы настроить его и получить код вставки.</p>
+      </div>
+    </main>
+  </div>
+
+  <!-- Модалка создания -->
+  <div class="modal-overlay" id="createModal" hidden>
+    <div class="modal">
+      <h3>Новый виджет</h3>
+      <label class="fld">
+        <span>Название</span>
+        <input id="newName" placeholder="Например: Форма на главной" />
+      </label>
+      <div class="type-picker">
+        <button class="type-card" data-type="form">
+          <span class="tc-ico">✉</span><b>Форма / подписка</b>
+          <small>Сбор заявок и email</small>
+        </button>
+        <button class="type-card" data-type="popup">
+          <span class="tc-ico">◰</span><b>Поп-ап / баннер</b>
+          <small>Промо с триггерами</small>
+        </button>
+        <button class="type-card" data-type="social">
+          <span class="tc-ico">❝</span><b>Лента / отзывы</b>
+          <small>Сетка карточек</small>
+        </button>
+        <button class="type-card" data-type="html">
+          <span class="tc-ico">&lt;/&gt;</span><b>HTML / встраивание</b>
+          <small>Любой HTML, CSS и JS</small>
+        </button>
+        <button class="type-card" data-type="video">
+          <span class="tc-ico">▶</span><b>Плавающее видео</b>
+          <small>Кружок в углу экрана</small>
+        </button>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="cancelCreate">Отмена</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
