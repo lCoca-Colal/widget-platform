@@ -1,33 +1,20 @@
 /* =====================================================================
    embed.js — loader платформы виджетов.
-   Это ЕДИНСТВЕННЫЙ файл, который клиент вставляет на свой сайт:
-
+   Клиент вставляет ОДНУ строку куда угодно (в <head> или <body>):
      <script src="https://.../embed.js" data-widget-id="ID" async></script>
-     или
+   либо контейнером:
      <div data-widget-id="ID"></div>
      <script src="https://.../embed.js" async></script>
-
-   Что делает:
-   1. Находит контейнеры по data-widget-id.
-   2. Тянет конфиг с сервера.
-   3. Рендерит виджет в изолированном Shadow DOM (чужой CSS не ломает виджет).
-   4. Шлёт события аналитики (impression/click/submit/open/close).
-
-   В проде рантаймы каждого типа грузятся отдельно (code-splitting) и
-   рендерятся на Preact. Здесь для нулевой сборки — всё в одном файле на
-   ванильном JS. Механика (Shadow DOM, конфиг, события) идентична бою.
    ===================================================================== */
 (function () {
   "use strict";
 
-  // Базовый URL сервера = origin этого скрипта.
   var SELF = document.currentScript || (function () {
     var s = document.getElementsByTagName("script");
     return s[s.length - 1];
   })();
   var API_BASE = new URL(SELF.src).origin;
 
-  // Стабильный ID посетителя (для уникальных показов и дедупликации).
   function visitorId() {
     try {
       var k = "wgt_visitor";
@@ -42,9 +29,8 @@
     }
   }
 
-  // Отправка события — sendBeacon, чтобы не блокировать страницу.
   function track(widgetId, type, meta) {
-    if (window.__WIDGET_NO_TRACK) return; // режим превью в админке — не засчитываем
+    if (window.__WIDGET_NO_TRACK) return;
     var body = JSON.stringify({
       events: [{
         widgetId: widgetId,
@@ -65,14 +51,11 @@
     } catch (e) {}
   }
 
-  // Экранирование пользовательского контента (защита от XSS).
   function esc(s) {
     return String(s == null ? "" : s)
       .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
   }
-
-  /* ---------------- Рендереры виджетов ---------------- */
 
   function baseStyles() {
     return (
@@ -131,7 +114,6 @@
     var accent = cfg.accent || "#4338CA";
     var freqDays = cfg.frequencyDays != null ? cfg.frequencyDays : 1;
     var seenKey = "wgt_popup_" + id;
-    // Частота показа
     try {
       var last = localStorage.getItem(seenKey);
       if (last && freqDays > 0) {
@@ -140,7 +122,7 @@
       }
     } catch (e) {}
 
-    var pos = cfg.position || "center"; // center | bottom-right | top-bar
+    var pos = cfg.position || "center";
     var posCss = pos === "bottom-right"
       ? "right:24px;bottom:24px"
       : pos === "top-bar"
@@ -204,7 +186,7 @@
 
   function renderSocial(root, id, cfg) {
     var items = cfg.items || [];
-    var layout = cfg.layout || "grid"; // grid | list
+    var layout = cfg.layout || "grid";
     var cards = items.map(function (it) {
       var stars = "";
       if (it.rating) for (var i = 0; i < 5; i++) stars += i < it.rating ? "★" : "☆";
@@ -247,7 +229,6 @@
       "<style>html,body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}</style>" +
       "</head><body>" + (cfg.html || "") + "</body></html>";
     var ifr = document.createElement("iframe");
-    // sandbox: скрипты работают, но без allow-same-origin — нет доступа к host-сайту.
     ifr.setAttribute("sandbox", "allow-scripts allow-popups allow-forms");
     ifr.setAttribute("loading", "lazy");
     ifr.style.cssText = "width:100%;border:0;display:block;height:" + height + "px";
@@ -256,7 +237,6 @@
     track(id, "impression");
   }
 
-  // Разбор ссылки на видео: YouTube / Vimeo / прямой файл.
   function parseVideo(url) {
     url = String(url || "");
     var yt = /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/.exec(url);
@@ -338,7 +318,6 @@
         '<div class="frame">' + videoModalHtml(v) + "</div>" +
         (cfg.ctaText ? '<a class="mcta" href="' + esc(cfg.ctaUrl || "#") + '" data-act="mcta">' + esc(cfg.ctaText) + "</a>" : "") +
         "</div>";
-      // модалка должна жить вне shadow контейнера виджета, чтобы быть строго поверх
       root.appendChild(ov);
       track(id, "click");
       ov.addEventListener("click", function (e) {
@@ -367,9 +346,6 @@
 
   /* ---------------- Загрузка одного виджета ---------------- */
 
-  // Фиксированная обёртка для inline-виджета, закреплённого в углу экрана.
-  // Позиционирование на обёртке (без shadow), изоляция — на внутреннем div (с shadow),
-  // чтобы :host{all:initial} не сбрасывал position обёртки.
   function buildFloatWrapper(id, cfg) {
     var offsets = ({
       "bottom-right": "bottom:20px;right:20px",
@@ -421,10 +397,6 @@
         var inlineTypes = data.type === "form" || data.type === "social" || data.type === "html";
         var floating = inlineTypes && cfg.placement && cfg.placement !== "inline";
 
-        // Куда монтируем:
-        // - popup/video: всегда поверх страницы (рендерер сам fixed);
-        // - inline-виджет с placement-углом: в фиксированную обёртку поверх страницы;
-        // - иначе: в контейнер на странице (в потоке).
         var shadowHost;
         if (data.type === "popup" || data.type === "video") {
           shadowHost = document.body.appendChild(document.createElement("div"));
@@ -449,14 +421,19 @@
   }
 
   function init() {
-    // 1) ID на самом теге <script>
+    // 1) ID на самом теге <script>: вставляем виджет рядом со скриптом, если он в <body>,
+    //    иначе (например, скрипт в <head>) — в конец <body>. Так код вставки работает где угодно.
     var selfId = SELF.getAttribute("data-widget-id");
     if (selfId) {
       var holder = document.createElement("div");
-      SELF.parentNode.insertBefore(holder, SELF.nextSibling);
+      if (document.body.contains(SELF)) {
+        SELF.parentNode.insertBefore(holder, SELF.nextSibling);
+      } else {
+        document.body.appendChild(holder);
+      }
       mount(holder, selfId);
     }
-    // 2) Контейнеры в DOM
+    // 2) Явные контейнеры <div data-widget-id> в DOM
     document.querySelectorAll("[data-widget-id]").forEach(function (el) {
       if (el === SELF) return;
       mount(el, el.getAttribute("data-widget-id"));
