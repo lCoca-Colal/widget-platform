@@ -6,9 +6,8 @@ const db = require("./db");
 const app = express();
 const PORT = process.env.PORT || 3000;
 // Публичный адрес, с которого виджеты грузятся на чужих сайтах.
-// Локально можно не задавать; при деплое/туннеле — указать, напр.:
-//   PUBLIC_BASE_URL=https://widgets.example.com npm start
-const PUBLIC_BASE = (process.env.PUBLIC_BASE_URL || "").replace(/\/$/, "");
+// По умолчанию — ваш домен. Можно переопределить переменной окружения PUBLIC_BASE_URL.
+const PUBLIC_BASE = (process.env.PUBLIC_BASE_URL || "https://q.grandcar.info").replace(/\/$/, "");
 
 app.use(express.json({ limit: "12mb" }));
 
@@ -233,6 +232,22 @@ app.get("/api/v1/analytics/:id", (req, res) => {
    СТАТИКА
    ============================================================ */
 
+// Диагностика: показывает, какие файлы реально видит сервер (можно удалить позже).
+app.get("/debug", (req, res) => {
+  const out = {};
+  const show = (label, p) => {
+    try { out[label] = fs.readdirSync(p); }
+    catch (e) { out[label] = "НЕТ ПАПКИ: " + e.code; }
+  };
+  out.__dirname = __dirname;
+  out.cwd = process.cwd();
+  out.PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || "(не задан)";
+  show(". (корень приложения)", __dirname);
+  show("public", path.join(__dirname, "public"));
+  show("public/admin", path.join(__dirname, "public", "admin"));
+  res.json(out);
+});
+
 // embed.js и runtime отдаём с правильным content-type
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -242,10 +257,8 @@ app.get("/", (req, res) =>
 );
 
 app.listen(PORT, () => {
-  console.log(`\n  ▸ Платформа виджетов запущена`);
-  console.log(`  ▸ Админка:     http://localhost:${PORT}/admin/`);
-  console.log(`  ▸ Демо-сайт:   http://localhost:${PORT}/demo-site.html`);
-  console.log(`  ▸ Loader:      http://localhost:${PORT}/embed.js\n`);
-  if (PUBLIC_BASE) console.log(`  ▸ Публичный адрес для вставки: ${PUBLIC_BASE}/embed.js\n`);
-  else console.log(`  ⚠ PUBLIC_BASE_URL не задан — код вставки будет с localhost (работает только у вас).\n    Для чужих сайтов задайте PUBLIC_BASE_URL или используйте туннель (см. README).\n`);
+  console.log(`\n  ▸ Платформа виджетов запущена на порту ${PORT}`);
+  console.log(`  ▸ Публичный адрес: ${PUBLIC_BASE}`);
+  console.log(`  ▸ Админка:  ${PUBLIC_BASE}/admin/`);
+  console.log(`  ▸ Loader:   ${PUBLIC_BASE}/embed.js\n`);
 });
