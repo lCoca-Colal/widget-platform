@@ -1,0 +1,13 @@
+{
+  "name": "widget-platform",
+  "version": "0.1.0",
+  "description": "Конструктор встраиваемых виджетов с админкой и аналитикой (MVP-прототип)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "seed": "node seed.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
